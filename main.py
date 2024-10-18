@@ -3,15 +3,26 @@ import numpy as np
 import mediapipe as mp
 import pickle
 import os
+import sys
+import pyttsx3  # Librería para texto a voz
 from tensorflow.keras.models import load_model
 from modules.hand_detector import HandDetector
 from modules.frame_saver import FrameSaver
-import sys
+
+# Configurar la salida estándar para soportar UTF-8
 sys.stdout.reconfigure(encoding='utf-8')
 
 def main():
-    
-    mode = 'reconocimiento'  # Cambia a 'reconocimiento' para el modo de reconocimiento
+    # Inicializar el motor de texto a voz
+    engine = pyttsx3.init()
+    engine.setProperty('rate', 150)  # Velocidad de la voz (opcional)
+    engine.setProperty('volume', 1.0)  # Volumen de la voz (opcional)
+
+    # Estado inicial del modo
+    mode = 'reconocimiento'  # Modo inicial: 'reconocimiento' o 'captura'
+
+    # Variable para almacenar la última clase detectada
+    last_class = None
 
     if mode == 'reconocimiento':
         # Cargar el modelo entrenado y el codificador de etiquetas
@@ -26,16 +37,19 @@ def main():
     if mode == 'captura':
         saver = FrameSaver()
         # Etiqueta de la seña actual (modificar según la seña que estás capturando)
-        current_label = 'B'  # Cambia 'C' por la letra o seña que deseas capturar
-        frame_count = 321  # Contador de frames guardados
+        current_label = 'A'  # Cambia 'J' por la letra o seña que deseas capturar
+        frame_count = 1  # Contador de frames guardados
 
     # Configurar la captura de video
     cap = cv2.VideoCapture(0)
 
+    # Mostrar el modo inicial en la consola
+    print(f"Modo actual: {mode}")
+
     while True:
         ret, frame = cap.read()
         if not ret:
-            print("No se pudo acceder a la camara.")
+            print("No se pudo acceder a la cámara.")
             break
 
         # Voltear la imagen horizontalmente para efecto espejo
@@ -60,6 +74,13 @@ def main():
                 # Mostrar la predicción en la imagen
                 cv2.putText(frame, f'Letra: {class_name}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
                             1, (0, 255, 0), 2, cv2.LINE_AA)
+
+                # Convertir la letra detectada a voz si es una nueva detección
+                if class_name != last_class:
+                    engine.say(class_name)
+                    engine.runAndWait()
+                    last_class = class_name
+
             elif mode == 'captura':
                 # Mostrar mensaje indicando que se detectó una mano
                 cv2.putText(frame, 'Mano detectada - Presiona "g" para guardar', (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
@@ -69,11 +90,33 @@ def main():
             cv2.putText(frame, 'No se detecta mano', (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
                         1, (0, 0, 255), 2, cv2.LINE_AA)
 
+        # Mostrar el modo actual en la esquina inferior izquierda de la imagen
+        cv2.putText(frame, f'Modo: {mode}', (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7, (255, 255, 255), 2, cv2.LINE_AA)
+
         # Mostrar la imagen resultante
-        cv2.imshow('Lenguaje de Senas', frame)
+        cv2.imshow('Lenguaje de Señales', frame)
 
         # Capturar la tecla presionada
         key = cv2.waitKey(1) & 0xFF
+
+        # Manejo de teclas para cambiar de modo y otras acciones
+        if key == ord('m'):  # Presiona 'm' para cambiar de modo
+            if mode == 'reconocimiento':
+                mode = 'captura'
+                # Inicializar el guardador de frames para el nuevo modo
+                saver = FrameSaver()
+                current_label = 'A'  # Cambia 'J' por la letra o seña que deseas capturar
+                frame_count = 0  # Reiniciar o ajustar el contador según sea necesario
+                print(f"Cambiado a modo: {mode}")
+            else:
+                mode = 'reconocimiento'
+                # Cargar el modelo y el codificador nuevamente
+                model = load_model('models/modelo_senas.h5')
+                with open('models/label_encoder.pkl', 'rb') as file:
+                    le = pickle.load(file)
+                last_class = None  # Reiniciar la última clase detectada
+                print(f"Cambiado a modo: {mode}")
 
         if mode == 'captura':
             if key == ord('g') and all_hands:
