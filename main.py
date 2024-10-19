@@ -6,7 +6,7 @@ import os
 import sys
 import pyttsx3  # Librería para texto a voz
 from tensorflow.keras.models import load_model
-from modules.hand_detector import HandDetector
+from modules.detector_manos import HandDetector
 from modules.frame_saver import FrameSaver
 
 # Configurar la salida estándar para soportar UTF-8

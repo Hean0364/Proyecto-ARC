@@ -1,6 +1,6 @@
 
 import numpy as np
-from modules.model_trainer import train_model
+from modules.model_trainer import entrenar_modelo
 import pickle
 import sys
 sys.stdout.reconfigure(encoding='utf-8')
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     num_classes = len(le.classes_)
 
     # Entrenar el modelo
-    model = train_model(X_train, y_train, X_test, y_test, num_classes)
+    model = entrenar_modelo(X_train, y_train, X_test, y_test, num_classes)
 
     # Evaluar el modelo
     loss, accuracy = model.evaluate(X_test, y_test)
