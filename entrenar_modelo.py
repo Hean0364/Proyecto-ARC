@@ -1,6 +1,6 @@
-
+"""
 import numpy as np
-from modules.model_trainer import entrenar_modelo
+from model_trainer_static import entrenar_modelo
 import pickle
 import sys
 sys.stdout.reconfigure(encoding='utf-8')
@@ -47,3 +47,4 @@ print(cm)
 report = classification_report(y_test, y_pred_classes, target_names=le.classes_)
 print('Reporte de Clasificación:')
 print(report)
+"""
