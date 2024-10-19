@@ -4,7 +4,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.optimizers import Adam
 
 
-def train_model(X_train, y_train, X_test, y_test, num_classes):
+def entrenar_modelo(X_train, y_train, X_test, y_test, num_classes):
     model = Sequential([
         Dense(256, activation='relu', input_shape=(63,)),
         Dropout(0.5),

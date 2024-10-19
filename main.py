@@ -37,8 +37,8 @@ def main():
     if mode == 'captura':
         saver = FrameSaver()
         # Etiqueta de la seña actual (modificar según la seña que estás capturando)
-        current_label = 'A'  # Cambia 'J' por la letra o seña que deseas capturar
-        frame_count = 1  # Contador de frames guardados
+        current_label = 'D'  # Cambia 'J' por la letra o seña que deseas capturar
+        frame_count = 202  # Contador de frames guardados
 
     # Configurar la captura de video
     cap = cv2.VideoCapture(0)
@@ -106,8 +106,8 @@ def main():
                 mode = 'captura'
                 # Inicializar el guardador de frames para el nuevo modo
                 saver = FrameSaver()
-                current_label = 'A'  # Cambia 'J' por la letra o seña que deseas capturar
-                frame_count = 0  # Reiniciar o ajustar el contador según sea necesario
+                current_label = 'D'  # Cambia 'J' por la letra o seña que deseas capturar
+                frame_count = 202  # Reiniciar o ajustar el contador según sea necesario
                 print(f"Cambiado a modo: {mode}")
             else:
                 mode = 'reconocimiento'
