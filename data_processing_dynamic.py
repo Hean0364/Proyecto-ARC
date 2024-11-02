@@ -124,7 +124,7 @@ if __name__ == '__main__':
     # Verificar si hay datos cargados
     if X.shape[0] == 0:
         print("No se encontraron secuencias dinámicas para procesar.")
-        exit()
+        exit()  
 
     # Preprocesar los datos
     X_train, X_test, y_train, y_test, le, scaler = preprocesar_datos(X, y)
