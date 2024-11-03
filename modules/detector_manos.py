@@ -1,7 +1,7 @@
 import cv2
 import mediapipe as mp
 
-class HandDetector:
+class Detector_Manos:
     def __init__(self, max_num_hands=2, detection_confidence=0.5, tracking_confidence=0.5):
         self.max_num_hands = max_num_hands
         self.detection_confidence = detection_confidence
@@ -16,7 +16,7 @@ class HandDetector:
             min_tracking_confidence=self.tracking_confidence)
         self.mp_drawing = mp.solutions.drawing_utils
 
-    def find_hands(self, image, draw=True):
+    def encontrar_manos(self, image, draw=True):
         # Convertir la imagen a RGB
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         results = self.hands.process(image_rgb)

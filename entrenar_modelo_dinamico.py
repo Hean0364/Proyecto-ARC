@@ -1,4 +1,3 @@
-# model_trainer_dynamic.py
 
 import numpy as np
 from tensorflow.keras.models import Sequential

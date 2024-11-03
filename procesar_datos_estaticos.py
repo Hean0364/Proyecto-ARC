@@ -1,4 +1,3 @@
-# data_processing_static.py
 
 import os
 import cv2
