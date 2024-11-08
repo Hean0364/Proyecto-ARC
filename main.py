@@ -14,17 +14,17 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 def motor_voz(cola_voz):
     motor = pyttsx3.init()
-    motor.setProperty('rate', 500)  # Aumentar la velocidad de habla
+    motor.setProperty('rate', 500) 
     motor.setProperty('volume', 1.0)
     while True:
         try:
             # Usamos get_nowait para no bloquear si no hay mensajes
             text = cola_voz.get_nowait()
         except:
-            continue  # Si no hay mensajes, continuamos el ciclo
+            continue  
         if text is None:
             break
-        motor.stop()  # Detener cualquier discurso en curso
+        motor.stop()  
         motor.say(text)
         motor.runAndWait()
 
@@ -36,9 +36,9 @@ class SignLanguageRecognizer:
         self.scaler = None
         self.detector = Detector_Manos(max_num_hands=2, detection_confidence=0.5)
         self.saver = FrameSaver()
-        self.capturing_sequence = False
-        self.sequence_frames = []
-        self.sequence_length = 30
+        self.capturar_secuencias = False
+        self.secuencias_frames = []
+        self.secuencias = 30
         self.current_label = None
         self.frame_count = 1
         self.last_class = None
@@ -48,20 +48,20 @@ class SignLanguageRecognizer:
         self.cap = cv2.VideoCapture(0)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        self.load_model_and_encoder(self.modo)
+        self.cargarmodelos(self.modo)
         print(f"Modo actual: {self.modo}")
-        self.recognized_words = []
+        self.palabras_reco = []
         self.max_palabras = 1
 
-    def load_model_and_encoder(self, mode):
+    def cargar_modelos(self, modo):
         model_path = ''
         encoder_path = ''
         scaler_path = ''
-        if mode == 'reconocimiento_estatico':
+        if modo == 'reconocimiento_estatico':
             model_path = 'models/modelo_senas_estaticas.h5'
             encoder_path = 'models/label_encoder_estaticas.pkl'
             scaler_path = 'models/scaler_estaticas.pkl'
-        elif mode == 'reconocimiento_dinamico':
+        elif modo == 'reconocimiento_dinamico':
             model_path = 'models/modelo_senas_dinamicas.h5'
             encoder_path = 'models/label_encoder_dinamicas.pkl'
             scaler_path = 'models/scaler_dinamicas.pkl'
@@ -107,9 +107,9 @@ class SignLanguageRecognizer:
                 else:
                     self.handle_recognition(frame, all_hands)
             elif self.modo == 'captura_estatica':
-                self.handle_static_capture(frame, key, all_hands)
+                self.capturar_mano_estatica(frame, key, all_hands)
             elif self.modo == 'captura_dinamica':
-                self.handle_dynamic_capture(frame, key, all_hands)
+                self.capturar_mano_dinamica(frame, key, all_hands)
         else:
             if self.modo.startswith('captura'):
                 cv2.putText(frame, 'No se detecta mano', (10, 30),
@@ -121,22 +121,22 @@ class SignLanguageRecognizer:
 
         # Mostrar palabras reconocidas en la pantalla
         y_offset = 60
-        for word in self.recognized_words:
+        for word in self.palabras_reco:
             cv2.putText(frame, word, (10, y_offset),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
             y_offset += 30
 
         cv2.imshow('Lenguaje de Señales', frame)
-        self.handle_key_press(key)
+        self.atajos(key)
 
     def handle_recognition(self, frame, all_hands):
         if self.modo == 'reconocimiento_estatico':
             for hand_landmarks in all_hands:
-                class_name = self.predict_static(hand_landmarks)
+                class_name = self.predecir_estatico(hand_landmarks)
         elif self.modo == 'reconocimiento_dinamico':
-            class_name = self.predict_dynamic(frame, all_hands)
+            class_name = self.predecir_dinamico(frame, all_hands)
 
-    def predict_static(self, hand_landmarks):
+    def predecir_estatico(self, hand_landmarks):
         landmarks = np.array(hand_landmarks).flatten().reshape(1, -1)
         landmarks_scaled = self.scaler.transform(landmarks)
         y_pred = self.modelo.predict(landmarks_scaled)
@@ -145,14 +145,14 @@ class SignLanguageRecognizer:
 
         if class_name != self.last_class:
             self.cola_voz.put(class_name)
-            self.recognized_words.append(class_name)
-            if len(self.recognized_words) > self.max_palabras:
-                self.recognized_words.pop(0)
+            self.palabras_reco.append(class_name)
+            if len(self.palabras_reco) > self.max_palabras:
+                self.palabras_reco.pop(0)
             self.last_class = class_name
 
         return class_name
 
-    def predict_dynamic(self, frame, all_hands):
+    def predecir_dinamico(self, frame, all_hands):
          # Inicializar listas para las landmarks de cada mano
         hand1_landmarks = np.zeros(63)  # Suponiendo 21 puntos * 3 coordenadas
         hand2_landmarks = np.zeros(63)
@@ -163,32 +163,32 @@ class SignLanguageRecognizer:
             hand2_landmarks = np.array(all_hands[1]).flatten()
     
         combined_landmarks = np.concatenate([hand1_landmarks, hand2_landmarks])
-        self.sequence_frames.append(combined_landmarks)
+        self.secuencias_frames.append(combined_landmarks)
     
-        cv2.putText(frame, f'Capturando secuencia: {len(self.sequence_frames)}/{self.sequence_length}',
+        cv2.putText(frame, f'Capturando secuencia: {len(self.secuencias_frames)}/{self.secuencias}',
                     (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2, cv2.LINE_AA)
 
-        if len(self.sequence_frames) == self.sequence_length:
-            sequence = np.array(self.sequence_frames)
+        if len(self.secuencias_frames) == self.secuencias:
+            sequence = np.array(self.secuencias_frames)
             sequence_flat = sequence.flatten().reshape(1, -1)
             sequence_scaled = self.scaler.transform(sequence_flat)
-            sequence_scaled = sequence_scaled.reshape(1, self.sequence_length, -1)
+            sequence_scaled = sequence_scaled.reshape(1, self.secuencias, -1)
             y_pred = self.modelo.predict(sequence_scaled)
             class_id = np.argmax(y_pred)
             class_name = self.le.inverse_transform([class_id])[0]
 
             if class_name != self.last_class:
                 self.cola_voz.put(class_name)
-                self.recognized_words.append(class_name)
-                if len(self.recognized_words) > self.max_palabras:
-                    self.recognized_words.pop(0)
+                self.palabras_reco.append(class_name)
+                if len(self.palabras_reco) > self.max_palabras:
+                    self.palabras_reco.pop(0)
                 self.last_class = class_name
 
-            self.sequence_frames = []
+            self.secuencias_frames = []
             return class_name
         return None
 
-    def handle_static_capture(self, frame, key, all_hands):
+    def capturar_mano_estatica(self, frame, key, all_hands):
         if all_hands:
             cv2.putText(frame, 'Mano detectada - Presiona "g" para guardar imagen', (10, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2, cv2.LINE_AA)
@@ -200,13 +200,13 @@ class SignLanguageRecognizer:
             cv2.putText(frame, 'No se detecta mano', (10, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2, cv2.LINE_AA)
 
-    def handle_dynamic_capture(self, frame, key, all_hands):
-        if not self.capturing_sequence:
+    def capturar_mano_dinamica(self, frame, key, all_hands):
+        if not self.capturar_secuencias:
             cv2.putText(frame, 'Manos detectadas - Presiona "c" para iniciar captura', (10, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2, cv2.LINE_AA)
             if key == ord('c'):
-                self.capturing_sequence = True
-                self.sequence_frames = []
+                self.capturar_secuencias = True
+                self.secuencias_frames = []
                 print("Iniciando captura de secuencia de seña dinámica...")
         else:
             num_landmarks_per_hand = 21 * 3  # 21 puntos clave por mano, cada uno con x, y, z
@@ -218,7 +218,7 @@ class SignLanguageRecognizer:
             if len(all_hands) >= 2:
                 hand2_landmarks = np.array(all_hands[1]).flatten()
 
-            # Asegurarse de que las landmarks tengan el tamaño correcto
+            
             if hand1_landmarks.shape[0] != num_landmarks_per_hand:
                 hand1_landmarks = np.zeros(num_landmarks_per_hand)
             if hand2_landmarks.shape[0] != num_landmarks_per_hand:
@@ -226,28 +226,41 @@ class SignLanguageRecognizer:
 
             combined_landmarks = np.concatenate([hand1_landmarks, hand2_landmarks])
 
-            self.sequence_frames.append(combined_landmarks)
-            cv2.putText(frame, f'Capturando frame {len(self.sequence_frames)}/{self.sequence_length}',
+            self.secuencias_frames.append(combined_landmarks)
+            cv2.putText(frame, f'Capturando frame {len(self.secuencias_frames)}/{self.secuencias}',
                         (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2, cv2.LINE_AA)
-            if len(self.sequence_frames) == self.sequence_length:
-                sequence = np.array(self.sequence_frames)
+            if len(self.secuencias_frames) == self.secuencias:
+                sequence = np.array(self.secuencias_frames)
                 self.saver.save_sequence(sequence, self.current_label, self.frame_count)
                 self.frame_count += 1
-                self.capturing_sequence = False
+                self.capturar_secuencias = False
                 print(f"Secuencia de seña dinámica guardada: {self.current_label}_{self.frame_count}.npy")
 
 
-    def handle_key_press(self, key):
+    def atajos(self, key):
         if key == ord('m'):
-            self.switch_mode()
+            self.cambio_modo()
         elif key == ord('q'):
             self.limpiar()
             exit()
+        elif key==ord('s'):
+            while not self.cola_voz.empty():
+                try:
+                    self.cola_voz.get_nowait()
+                except Empty:
+                    break
 
-    def switch_mode(self):
+    def cambio_modo(self):
         self.last_class = None
-        self.sequence_frames = []
-        self.recognized_words = []
+        self.secuencias_frames = []
+        self.palabras_reco = []
+
+        
+        while not self.cola_voz.empty():
+            try:
+                self.cola_voz.get_nowait()
+            except Empty:
+                break
 
         if self.modo == 'reconocimiento_estatico':
             self.modo = 'captura_estatica'
@@ -256,18 +269,19 @@ class SignLanguageRecognizer:
             print(f"Cambiado a modo: {self.modo} (Captura Estática)")
         elif self.modo == 'captura_estatica':
             self.modo = 'reconocimiento_dinamico'
-            self.load_model_and_encoder(self.modo)
+            self.cargarmodelos(self.modo)
             print(f"Cambiado a modo: {self.modo} (Reconocimiento Dinámica)")
         elif self.modo == 'reconocimiento_dinamico':
             self.modo = 'captura_dinamica'
-            self.current_label = 'Hermosa'
+            self.current_label = 'Dios te bendiga'
             self.frame_count =1
-            self.capturing_sequence = False
+            self.capturar_secuencias = False
             print(f"Cambiado a modo: {self.modo} (Captura Dinámica)")
         elif self.modo == 'captura_dinamica':
             self.modo = 'reconocimiento_estatico'
-            self.load_model_and_encoder(self.modo)
+            self.cargarmodelos(self.modo)
             print(f"Cambiado a modo: {self.modo} (Reconocimiento Estática)")
+        
 
     def limpiar(self):
         self.cola_voz.put(None)
