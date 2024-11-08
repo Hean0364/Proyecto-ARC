@@ -35,7 +35,7 @@ def cargar_datos_dynamic(data_dir='data/dinamicas', label_encoder_path='models/l
     # Cargar el codificador de etiquetas
     with open(label_encoder_path, 'rb') as file:
         le = pickle.load(file)
-
+ 
     y_encoded = le.transform(y)
 
     return X, y_encoded, le
