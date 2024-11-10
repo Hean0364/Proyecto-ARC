@@ -17,8 +17,8 @@ En la terminal:
 3.  venv\Scripts\activate  # En Windows
 
 source venv/bin/activate  # En Linux
-
-4. pip freeze > requerimientos.txt
+4. pip install numpy opencv-python tensorflow scikit-learn mediapipe pyttsx3
+5.. pip freeze > requerimientos.txt
 
 ## Para ejecutar el programa
 

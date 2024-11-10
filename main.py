@@ -18,7 +18,6 @@ def motor_voz(cola_voz):
     motor.setProperty('volume', 1.0)
     while True:
         try:
-            # Usamos get_nowait para no bloquear si no hay mensajes
             text = cola_voz.get_nowait()
         except:
             continue  
@@ -48,7 +47,7 @@ class SignLanguageRecognizer:
         self.cap = cv2.VideoCapture(0)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        self.cargarmodelos(self.modo)
+        self.cargar_modelos(self.modo)
         print(f"Modo actual: {self.modo}")
         self.palabras_reco = []
         self.max_palabras = 1
@@ -105,7 +104,7 @@ class SignLanguageRecognizer:
                     cv2.putText(frame, 'Modelo, Encoder o Scaler no cargado', (10, 30),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2, cv2.LINE_AA)
                 else:
-                    self.handle_recognition(frame, all_hands)
+                    self.reconocer_manos(frame, all_hands)
             elif self.modo == 'captura_estatica':
                 self.capturar_mano_estatica(frame, key, all_hands)
             elif self.modo == 'captura_dinamica':
@@ -129,7 +128,7 @@ class SignLanguageRecognizer:
         cv2.imshow('Lenguaje de Señales', frame)
         self.atajos(key)
 
-    def handle_recognition(self, frame, all_hands):
+    def reconocer_manos(self, frame, all_hands):
         if self.modo == 'reconocimiento_estatico':
             for hand_landmarks in all_hands:
                 class_name = self.predecir_estatico(hand_landmarks)
@@ -269,7 +268,7 @@ class SignLanguageRecognizer:
             print(f"Cambiado a modo: {self.modo} (Captura Estática)")
         elif self.modo == 'captura_estatica':
             self.modo = 'reconocimiento_dinamico'
-            self.cargarmodelos(self.modo)
+            self.cargar_modelos(self.modo)
             print(f"Cambiado a modo: {self.modo} (Reconocimiento Dinámica)")
         elif self.modo == 'reconocimiento_dinamico':
             self.modo = 'captura_dinamica'
@@ -279,7 +278,7 @@ class SignLanguageRecognizer:
             print(f"Cambiado a modo: {self.modo} (Captura Dinámica)")
         elif self.modo == 'captura_dinamica':
             self.modo = 'reconocimiento_estatico'
-            self.cargarmodelos(self.modo)
+            self.cargar_modelos(self.modo)
             print(f"Cambiado a modo: {self.modo} (Reconocimiento Estática)")
         
 
