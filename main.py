@@ -263,7 +263,7 @@ class SignLanguageRecognizer:
 
         if self.modo == 'reconocimiento_estatico':
             self.modo = 'captura_estatica'
-            self.current_label = 'W'
+            self.current_label = 'Q'
             self.frame_count = 1
             print(f"Cambiado a modo: {self.modo} (Captura Estática)")
         elif self.modo == 'captura_estatica':
