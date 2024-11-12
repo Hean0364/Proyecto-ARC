@@ -51,6 +51,7 @@ class SignLanguageRecognizer:
         print(f"Modo actual: {self.modo}")
         self.palabras_reco = []
         self.max_palabras = 1
+        self.expresionestxt = 'expresiones_dinamicas.txt'  
 
     def cargar_modelos(self, modo):
         model_path = ''
@@ -152,12 +153,12 @@ class SignLanguageRecognizer:
         return class_name
 
     def predecir_dinamico(self, frame, all_hands):
-         # Inicializar listas para las landmarks de cada mano
+        # Inicializar listas para las landmarks de cada mano
         hand1_landmarks = np.zeros(63)  # Suponiendo 21 puntos * 3 coordenadas
         hand2_landmarks = np.zeros(63)
     
         if len(all_hands) >= 1:
-             hand1_landmarks = np.array(all_hands[0]).flatten()
+            hand1_landmarks = np.array(all_hands[0]).flatten()
         if len(all_hands) >= 2:
             hand2_landmarks = np.array(all_hands[1]).flatten()
     
@@ -182,6 +183,10 @@ class SignLanguageRecognizer:
                 if len(self.palabras_reco) > self.max_palabras:
                     self.palabras_reco.pop(0)
                 self.last_class = class_name
+
+                
+                with open(self.expresionestxt, 'a', encoding='utf-8') as f:
+                    f.write(class_name + '\n')
 
             self.secuencias_frames = []
             return class_name
@@ -217,7 +222,6 @@ class SignLanguageRecognizer:
             if len(all_hands) >= 2:
                 hand2_landmarks = np.array(all_hands[1]).flatten()
 
-            
             if hand1_landmarks.shape[0] != num_landmarks_per_hand:
                 hand1_landmarks = np.zeros(num_landmarks_per_hand)
             if hand2_landmarks.shape[0] != num_landmarks_per_hand:
@@ -242,7 +246,7 @@ class SignLanguageRecognizer:
         elif key == ord('q'):
             self.limpiar()
             exit()
-        elif key==ord('s'):
+        elif key == ord('s'):
             while not self.cola_voz.empty():
                 try:
                     self.cola_voz.get_nowait()
@@ -254,7 +258,6 @@ class SignLanguageRecognizer:
         self.secuencias_frames = []
         self.palabras_reco = []
 
-        
         while not self.cola_voz.empty():
             try:
                 self.cola_voz.get_nowait()
@@ -272,15 +275,14 @@ class SignLanguageRecognizer:
             print(f"Cambiado a modo: {self.modo} (Reconocimiento Dinámica)")
         elif self.modo == 'reconocimiento_dinamico':
             self.modo = 'captura_dinamica'
-            self.current_label = 'Dios te bendiga'
-            self.frame_count =1
+            self.current_label = 'Ella'
+            self.frame_count = 102
             self.capturar_secuencias = False
             print(f"Cambiado a modo: {self.modo} (Captura Dinámica)")
         elif self.modo == 'captura_dinamica':
             self.modo = 'reconocimiento_estatico'
             self.cargar_modelos(self.modo)
             print(f"Cambiado a modo: {self.modo} (Reconocimiento Estática)")
-        
 
     def limpiar(self):
         self.cola_voz.put(None)
@@ -289,6 +291,10 @@ class SignLanguageRecognizer:
         cv2.destroyAllWindows()
 
     def run(self):
+    
+        with open(self.expresionestxt, 'w', encoding='utf-8') as f:
+            f.write('')
+
         while True:
             ret, frame = self.cap.read()
             if not ret:
@@ -296,6 +302,7 @@ class SignLanguageRecognizer:
                 break
             self.process_frame(frame)
         self.limpiar()
+
 
 if __name__ == '__main__':
     recognizer = SignLanguageRecognizer()
