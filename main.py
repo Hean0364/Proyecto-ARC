@@ -314,3 +314,6 @@ class SignLanguageRecognizer:
 if __name__ == '__main__':
     recognizer = SignLanguageRecognizer()
     recognizer.run()
+
+
+#uptdate
