@@ -8,6 +8,8 @@ import pyttsx3
 from tensorflow.keras.models import load_model
 from modules.detector_manos import Detector_Manos
 from modules.frame_saver import FrameSaver
+from queue import Empty
+
 import time
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -123,10 +125,10 @@ class SignLanguageRecognizer:
         y_offset = 60
         for word in self.palabras_reco:
             cv2.putText(frame, word, (10, y_offset),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2, cv2.LINE_AA)
             y_offset += 30
 
-        cv2.imshow('Lenguaje de Señales', frame)
+        cv2.imshow('Lenguaje de señas', frame)
         self.atajos(key)
 
     def reconocer_manos(self, frame, all_hands):
@@ -166,7 +168,7 @@ class SignLanguageRecognizer:
         self.secuencias_frames.append(combined_landmarks)
     
         cv2.putText(frame, f'Capturando secuencia: {len(self.secuencias_frames)}/{self.secuencias}',
-                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2, cv2.LINE_AA)
+                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 2, cv2.LINE_AA)
 
         if len(self.secuencias_frames) == self.secuencias:
             sequence = np.array(self.secuencias_frames)
@@ -244,6 +246,11 @@ class SignLanguageRecognizer:
         if key == ord('m'):
             self.cambio_modo()
         elif key == ord('q'):
+            while not self.cola_voz.empty():
+                try:
+                    self.cola_voz.get_nowait()
+                except Empty:
+                    break
             self.limpiar()
             exit()
         elif key == ord('s'):
@@ -266,8 +273,8 @@ class SignLanguageRecognizer:
 
         if self.modo == 'reconocimiento_estatico':
             self.modo = 'captura_estatica'
-            self.current_label = 'Q'
-            self.frame_count = 1
+            self.current_label = 'F'
+            self.frame_count = 199
             print(f"Cambiado a modo: {self.modo} (Captura Estática)")
         elif self.modo == 'captura_estatica':
             self.modo = 'reconocimiento_dinamico'
@@ -275,8 +282,8 @@ class SignLanguageRecognizer:
             print(f"Cambiado a modo: {self.modo} (Reconocimiento Dinámica)")
         elif self.modo == 'reconocimiento_dinamico':
             self.modo = 'captura_dinamica'
-            self.current_label = 'Ella'
-            self.frame_count = 102
+            self.current_label = 'Carrera universitaria'
+            self.frame_count = 1
             self.capturar_secuencias = False
             print(f"Cambiado a modo: {self.modo} (Captura Dinámica)")
         elif self.modo == 'captura_dinamica':

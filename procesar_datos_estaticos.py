@@ -6,7 +6,7 @@ import pickle
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-import mediapipe as mp  # Importación correcta de MediaPipe
+import mediapipe as mp  
 
 class DataPreprocessorStatic:
     def __init__(self, data_dir='data/estaticas'):
@@ -15,7 +15,7 @@ class DataPreprocessorStatic:
         self.hands = self.mp_hands.Hands(
             static_image_mode=True,
             max_num_hands=1,
-            min_detection_confidence=0.2  # Mayor sensibilidad
+            min_detection_confidence=0.2  
         )
 
     def process_images(self):
